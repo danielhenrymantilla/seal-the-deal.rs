@@ -7,7 +7,7 @@ name = "seal-the-deal"
 authors = [
     "Daniel Henry-Mantilla <daniel.henry.mantilla@gmail.com>",
 ]
-version = "0.1.0-rc3"  # Keep in sync
+version = "0.1.0-rc4"  # Keep in sync
 edition = "2021"
 rust-version = "1.78.0"
 
@@ -43,7 +43,7 @@ docs-rs = [
 
 [dependencies.seal-the-deal-proc_macros]
 path = "src/proc_macros"
-version = "=0.1.0-rc3"  # Keep in sync
+version = "=0.1.0-rc4"  # Keep in sync
 
 [dev-dependencies]
 
