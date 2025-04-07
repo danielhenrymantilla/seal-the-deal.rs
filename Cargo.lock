@@ -22,14 +22,14 @@ dependencies = [
 
 [[package]]
 name = "seal-the-deal"
-version = "0.1.0-rc4"
+version = "0.1.0-rc5"
 dependencies = [
  "seal-the-deal-proc_macros",
 ]
 
 [[package]]
 name = "seal-the-deal-proc_macros"
-version = "0.1.0-rc4"
+version = "0.1.0-rc5"
 dependencies = [
  "proc-macro2",
  "quote",
