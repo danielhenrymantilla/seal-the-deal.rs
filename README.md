@@ -1,4 +1,9 @@
-# `::seal-the-deal`
+<img
+    src="https://private-user-images.githubusercontent.com/9920355/430971771-b2f3cb17-1b17-4731-aefb-e0b01ee20072.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NDQwMzQ4ODQsIm5iZiI6MTc0NDAzNDU4NCwicGF0aCI6Ii85OTIwMzU1LzQzMDk3MTc3MS1iMmYzY2IxNy0xYjE3LTQ3MzEtYWVmYi1lMGIwMWVlMjAwNzIucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI1MDQwNyUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNTA0MDdUMTQwMzA0WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9MDFlYWNlYTNiZmExMTA0ZDE3YzdhZGM4ODEwN2M5ZmQ5ZmM5NTRlMTY0YTRmYzMzMmIxODNjNzg0MzI3ZGJhNyZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QifQ.noSq9VLwY_tGyv-g9Xz1PWDN4zqpWNhp1u-oOGY3YtA"
+    height="100px"
+/>
+
+# 🦭 `::seal-the-deal` 🦭
 
 Attribute to use on the `trait` methods (or associated functions) that you wish to "seal", a.k.a.,
 render them `final`.
@@ -54,7 +59,7 @@ trait SomeTrait {
     }
 }
 
-enum Evil {}
+struct Evil;
 
 impl SomeTrait for Evil {
     fn some_method(&self) -> i32 {
@@ -116,20 +121,19 @@ pub trait SomeTrait {
 }
 ```
 
-This approach does effectively and nicely seal that method from being overridden:
+This approach does effectively and nicely seal that method, preventing it from being overridden:
 
-  - since the clause is trivially implemented for (at least one, in practice, all) lifetime(s),
-    callers are not hindered by it.
+  - since the clause is trivially implemented for for at least one lifetime (in practice all of
+    them), callers are not hindered by it.
 
       - underspecified lifetime params are fine, they do not cause "inference ambiguity errors";
       - this clause is `dyn`-compatible!
-      - method being in the actual trait, it remains visible in the docs;
+      - since the method stays in the actual trait, it remains visible in the docs;
           - a `() : Sealed<'seal>` will be visible, which is rather low-noise w.r.t. the semantics
             involved.
 
-  - and yet the clause appears to be complex/convoluted enough for Rust not to allow "looser"
-    implementations like it sometimes does, hence the "lifetime mismatch" when people attempt to do
-    actual impls.
+  - and yet the clause appears to be complex/convoluted enough for Rust not to allow skipping it,
+    hence the "lifetime mismatch" when people attempt to do actual impls.
 
   - technically-speaking, it is possible for a same-module or submodule-thereof to have enough
     visibility of `__SomeTraitඞseal_the_deal::Sealed` to be able to repeat, _verbatim_, the clause.
@@ -140,8 +144,8 @@ This approach does effectively and nicely seal that method from being overridden
       - same-crate code is not really the threat/adversarial model, here, but rather, external code
         (be it for Semver or `unsafe`ty reasons).
 
-      - if this is really deemed to be a problem, just further encapsulate the whole thing in a
-        helper private `mod`ule:
+      - if this were really deemed a problem, the user could then just further encapsulate the whole
+        thing in a helper private `mod`ule:
 
         ```rust
         pub use paranoid::SomeTrait;
@@ -192,7 +196,7 @@ But this approach has _two_ problems:
     ergonomically call `.method()` in a blissfully oblivious-to-the-super-extension-trait way, it
     turns out that _concrete_ implementors do not let one perform such ergonomic calls directly: the
     super extension trait is expected to be in scope for the method call to succeed, totally
-    shattering the magic, in my opinion.
+    shattering, imho, the illusion and magic of the pattern.
 
     ```rust ,compile_fail
     mod lib {
