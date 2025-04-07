@@ -1,0 +1,27 @@
+# Templated by `cargo-generate` using https://github.com/danielhenrymantilla/proc-macro-template
+[lib]
+proc-macro = true
+path = "_mod.rs"
+
+[package]
+name = "seal-the-deal-proc_macros"
+authors = [
+    "Daniel Henry-Mantilla <daniel.henry.mantilla@gmail.com>"
+]
+version = "0.1.0-rc1"  # Keep in sync
+edition = "2021"
+rust-version = "1.78.0"
+
+license = "Zlib OR MIT OR Apache-2.0"
+repository = "https://github.com/danielhenrymantilla/seal-the-deal.rs"
+documentation = "https://docs.rs/seal-the-deal"
+
+description = "Internal: proc-macro backend of ::seal_the_deal."
+
+[dependencies]
+proc-macro2.version = "1.0.0"
+quote.version = "1.0.0"
+syn.version = "2.0.0"
+syn.features = [
+    "full",
+]

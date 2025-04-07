@@ -1,0 +1,124 @@
+name: CI
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  # == CHECK == #
+  check:
+    name: "Check beta stable and MSRV=1.78.0"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust-toolchain:
+          - 1.78.0
+          - stable
+          # Try to guard against a near-future regression.
+          - beta
+        cargo-locked: ['', '--locked']
+        # feature-xxx: ['', '--features xxx']
+        exclude:
+          # MSRV guarantee only stands for `.lock`-tested dependencies.
+          - rust-toolchain: 1.78.0
+            cargo-locked: ''
+    steps:
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust-toolchain }}
+        id: installed_toolchain
+
+      - name: Override toolchain just in case.
+        run: rustup override set ${{ steps.installed_toolchain.outputs.name }}
+
+      - name: Clone repo
+        uses: actions/checkout@v4
+
+      - name: Update `Cargo.lock`
+        if: matrix.cargo-locked != '--locked'
+        run: cargo update -v
+
+      - name: Cargo check
+        run: cargo check ${{ matrix.cargo-locked }}
+
+  # == TEST == #
+  test:
+    name: "Run tests"
+    runs-on: ${{ matrix.os }}
+    needs: []
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+        rust-toolchain:
+          - 1.78.0
+          - stable
+    steps:
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust-toolchain }}
+        id: installed_toolchain
+
+      - name: Override toolchain just in case.
+        run: rustup override set ${{ steps.installed_toolchain.outputs.name }}
+
+      - name: Clone repo
+        uses: actions/checkout@v4
+
+      - run: cargo test --lib --tests
+
+      - run: cargo test --doc --features docs-rs
+        if: matrix.rust-toolchain != '1.78.0'
+        env:
+          RUSTC_BOOTSTRAP: 1
+
+  # # == UI TESTS ==
+  # ui-test:
+  #   name: UI Tests
+  #   runs-on: ubuntu-latest
+  #   needs: [check]
+  #   steps:
+  #     - name: Install Rust toolchain
+  #       uses: dtolnay/rust-toolchain@stable
+  #       id: installed_toolchain
+  #
+  #     - name: Override toolchain just in case.
+  #       run: rustup override set ${{ steps.installed_toolchain.outputs.name }}
+  #
+  #     - name: Clone repo
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Cargo UI test
+  #       run: cargo test-ui
+  #       env:
+  #         RUSTC_BOOTSTRAP: 1
+  #       with:
+  #         command: test-ui
+
+  required-jobs:
+    name: 'All the required jobs'
+    needs:
+      - check
+      - test
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    steps:
+      - name: 'Check success of the required jobs'
+        run: |
+          RESULT=$(echo "${{ join(needs.*.result, '') }}" | sed -e "s/success//g")
+          if [ -n "$RESULT" ]; then
+            echo "❌"
+            false
+          fi
+          echo "✅"

@@ -1,0 +1,58 @@
+# Templated by `cargo-generate` using https://github.com/danielhenrymantilla/proc-macro-template
+name: Cron CI
+
+on:
+  schedule:
+    - cron: '0 8 * * 1,5'
+
+jobs:
+  # == TEST == #
+  test-no-ui:
+    name: (Check & Build &) Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+        rust-toolchain:
+        # Future-proof against non-locked regressions.
+          - stable
+        # Future-proof against compiler-regressions
+          - beta
+          - nightly
+        cargo-locked: ['', '--locked']
+        exclude:
+          # Already tested by PR CI.
+          - rust-toolchain: stable
+            cargo-locked: '--locked'
+          # Cursed auto-`nightly`-detection logic from dtolnay's crates may break `--locked`.
+          - rust-toolchain: nightly
+            cargo-locked: '--locked'
+    steps:
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust-toolchain }}
+        id: installed_toolchain
+
+      - name: Override toolchain just in case.
+        run: rustup override set ${{ steps.installed_toolchain.outputs.name }}
+
+      - name: Clone repo
+        uses: actions/checkout@v4
+
+      - name: Update `Cargo.lock`
+        if: matrix.cargo-locked != '--locked'
+        run: cargo update -v
+
+      - run: cargo test ${{ matrix.cargo-locked }} --features docs-rs
+        env:
+          RUSTC_BOOTSTRAP: 1
+
+      # - run: cargo test-ui
+      #   if: matrix.rust-toolchain != '1.78.0'
+      #   env:
+      #     RUSTC_BOOTSTRAP: 1
