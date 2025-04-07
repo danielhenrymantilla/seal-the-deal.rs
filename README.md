@@ -106,15 +106,15 @@ expands to:
 
 ```rust
 mod __SomeTraitඞseal_the_deal {
-    pub trait Sealed<'__> {}
-    impl Sealed<'_> for () {}
+    pub trait Seal<'__> {}
+    impl Seal<'_> for () {}
 }
 
 pub trait SomeTrait {
     /// Shall always return `42`.
-    fn some_method<'seal>(&self) -> i32
+    fn some_method<'sealed>(&self) -> i32
     where
-        () : __SomeTraitඞseal_the_deal::Sealed<'seal>,
+        () : __SomeTraitඞseal_the_deal::Seal<'sealed>,
     {
         42
     }

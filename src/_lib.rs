@@ -2,6 +2,7 @@
 #![no_std]
 #![forbid(unsafe_code)]
 #![doc(html_logo_url = "https://private-user-images.githubusercontent.com/9920355/430971771-b2f3cb17-1b17-4731-aefb-e0b01ee20072.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NDQwMzQ4ODQsIm5iZiI6MTc0NDAzNDU4NCwicGF0aCI6Ii85OTIwMzU1LzQzMDk3MTc3MS1iMmYzY2IxNy0xYjE3LTQ3MzEtYWVmYi1lMGIwMWVlMjAwNzIucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI1MDQwNyUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNTA0MDdUMTQwMzA0WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9MDFlYWNlYTNiZmExMTA0ZDE3YzdhZGM4ODEwN2M5ZmQ5ZmM5NTRlMTY0YTRmYzMzMmIxODNjNzg0MzI3ZGJhNyZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QifQ.noSq9VLwY_tGyv-g9Xz1PWDN4zqpWNhp1u-oOGY3YtA")]
+#![cfg_attr(feature = "docs-rs", feature(doc_cfg))]
 
 /// Attribute required on the enscoping `trait` definition to enable usage of the
 /// <code>[#\[sealed\]][`sealed`]</code> attribute on its associated functions (with default impls).
@@ -94,3 +95,30 @@ pub use ::seal_the_deal_proc_macros::sealed;
 
 #[doc = include_str!("compile_fail_tests.md")]
 mod _compile_fail_tests {}
+
+/// An example of the rendered docs of a <code>[#\[with_seals\]][`with_seals`]</code>-`trait`
+/// definition.
+///
+/// The source code for the trait was:
+///
+/// ```rust
+/// /// <these very docs>
+/// #[::seal_the_deal::with_seals]
+/// pub trait Example {
+///     #[sealed]
+///     /// This shall always return `42`.
+///     fn method(&self) -> i32 {
+///         42
+///     }
+/// }
+/// ```
+#[doc(cfg(docs))]
+#[cfg(feature = "docs-rs")]
+#[with_seals]
+pub trait Example {
+    #[sealed]
+    /// This shall always return `42`.
+    fn method(&self) -> i32 {
+        42
+    }
+}

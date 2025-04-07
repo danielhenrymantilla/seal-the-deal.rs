@@ -71,8 +71,8 @@ fn with_seals_impl(
             ret.extend(quote!(
                 #[allow(warnings, clippy::all)]
                 mod #module_name {
-                    pub trait Sealed<'__> {}
-                    impl Sealed<'_> for () {}
+                    pub trait Seal<'__> {}
+                    impl Seal<'_> for () {}
                 }
             ));
             module_name
@@ -114,15 +114,29 @@ fn with_seals_impl(
                 ));
             }
         }
-        let extra_lifetime = &Lifetime::new("'__seal_the_deal", sealed_attr_span);
-        let helper_module_name = helper_module_name();
         let generics = &mut assoc_func.sig.generics;
+        let extra_lifetime = {
+            let mut storage = None;
+            let lifetime_name: &str = {
+                let mut lifetime_name = "sealed";
+                for i in 0_u64.. {
+                    if generics.lifetimes().any(|lt| lt.lifetime.ident == lifetime_name) {
+                        lifetime_name = storage.insert(format!("ඞseal_the_deal__sealed{i}"));
+                    } else {
+                        break;
+                    }
+                }
+                lifetime_name
+            };
+            Lifetime::new(&format!("'{lifetime_name}"), sealed_attr_span)
+        };
+        let helper_module_name = helper_module_name();
         generics.params.insert(
             generics.lifetimes().count(),
             parse_quote!( #extra_lifetime ),
         );
         generics.make_where_clause().predicates.push(parse_quote_spanned!(sealed_attr_span=>
-            () : #helper_module_name::Sealed<#extra_lifetime>
+            () : #helper_module_name::Seal<#extra_lifetime>
         ));
         // span hacks to improve diagnostics:
         // When "lifetimes in impl do not match this method in trait", the diagnostic want to span
@@ -138,19 +152,21 @@ fn with_seals_impl(
         // `Span::{call,mixed}_site()`, i.e., that of `#[with_seals]`).
         generics.lt_token = Some(Token![<](sealed_attr_span));
         generics.gt_token.get_or_insert_with(|| Token![>](sealed_attr_span));
+        assoc_func.attrs.push(parse_quote!(
+            #[doc = "\
+                \n\
+                ---\n\
+                \n\
+                ## Sealed method\n\
+                \n\
+                This function is deliberately \"sealed\": it shall be impossible to override the \
+                default implementation in any kind of `impl` block whatsoever.\n\
+                \n  \
+                  - (with the current implementation, an attempt to do so will fail with a \
+                    \"lifetimes do not match method in trait\" kind of error.)\
+            "]
+        ));
     }
-    input.attrs.push(parse_quote!(
-        #[doc = "\
-            \n\
-            ---\n\
-            \n\
-            ## Sealed method\n\
-            \n\
-            This function is purposely \"sealed\": it shall be impossible, in your own `impl`s, to \
-            override the default implementation (currently implemented through a \"lifetimes do \
-            not match method in trait\" kind of error).\
-        "]
-    ));
     input.to_tokens(&mut ret);
     Ok(ret)
 }
