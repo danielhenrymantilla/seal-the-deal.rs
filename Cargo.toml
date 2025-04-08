@@ -21,6 +21,12 @@ keywords = [
     "seal", "sealed", "final", "method", "override",
 ]
 
+[lints.rust.unexpected_cfgs]
+level = "warn"
+check-cfg = [
+    'cfg(doc_examples)',
+]
+
 [features]
 default = [
 ]
