@@ -13,6 +13,10 @@ docs-rs = [
 [build]
 rustdocflags = [
     "--html-before-content", "fix-docsrs-li-details-summary.html",
+    "--cfg", "doc_examples",
+]
+rustflags=[
+    "--cfg", "doc_examples",
 ]
 
 [doc.extern-map.registries]

@@ -27,7 +27,7 @@ https://github.com/rust-secure-code/safety-dance/)
 
 <!-- Templated by `cargo-generate` using https://github.com/danielhenrymantilla/proc-macro-template -->
 
-**It will be impossible for implementors to override the default implementation of that
+**It shall be impossible for implementors to override the default implementation of that
 function.**
 
 # Example
@@ -71,7 +71,7 @@ impl SomeTrait for Evil {
 
 with:
 
-```rust ,compile_fail
+```rust ,ignore
 # /*
 error[E0195]: lifetime parameters or bounds on method `some_method` do not match the trait declaration
   --> src/_lib.rs:61:19
@@ -81,8 +81,7 @@ error[E0195]: lifetime parameters or bounds on method `some_method` do not match
 ...
 19 |     fn some_method(&self) -> i32 {
    |                   ^ lifetimes do not match method in trait
-error: aborting due to 1 previous error
-# */ compile_error!("");
+# */
 ```
 
 # Implementation a.k.a. the macro secret magic sauce 🧙
@@ -225,7 +224,7 @@ But this approach has _two_ problems:
 
     Error message:
 
-    ```rust ,compile_fail
+    ```rust ,ignore
     # /*
     error[E0599]: no method named `method` found for struct `Foo` in the current scope
       --> src/_lib.rs:136:5
@@ -244,9 +243,51 @@ But this approach has _two_ problems:
        |
     2  + use lib::FinalMethodsOfTrait;
        |
-
-    error: aborting due to 1 previous error
-    # */ compile_error!();
+    # */
     ```
 
 </details>
+
+# Can `unsafe` code rely on the method never being overridden in any way?
+
+Not for the default [`#[sealed]`][sealed] case. Indeed, the reason code trying to override such a
+method currently fails is because the compiler is "not smart enough".
+
+Since the compiler ought to be very much allowed to get smarter, it means this method could end up
+not being as foolproof in the future.
+
+For a fully, properly airtight, method-sealing tool, do provide the `airtight` argument to
+[`#[sealed]`][sealed]:
+
+```rust ,ignore
+#[sealed(airtight)]
+```
+
+Like this:
+
+```rust
+#[seal_the_deal::with_seals]
+pub trait Example {
+    #[sealed(airtight)]
+    /// This shall always return a pointer valid for reads
+    fn valid_pointer() -> *const i32 {
+        &42 as &'static i32
+    }
+}
+
+pub fn sound<T: Example>() -> i32 {
+    let ptr: *const i32 = T::valid_pointer();
+    unsafe {
+        // SAFETY: the default implementation of that function
+        // has been sealed in a fully airtight manner.
+        *ptr
+    }
+}
+```
+
+This does break `dyn`-compatibility, and also makes the attribute default to hiding its shenanigans
+from the rendered documentation.
+
+See the docs of [`#[sealed]`][sealed] for more info about its arguments.
+
+[sealed]: https://docs.rs/seal-the-deal/^0.1/seal_the_deal/attr.sealed.html
