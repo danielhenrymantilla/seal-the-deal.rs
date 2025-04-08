@@ -56,6 +56,9 @@ members = [
 features = [
     "docs-rs",
 ]
+rustc-args = [
+    "--cfg", "doc_examples",
+]
 rustdoc-args = [
     # Use (with or without `open`):
     # ```md
@@ -66,3 +69,5 @@ rustdoc-args = [
     # to get nice drop-down menus (and avoid the css bug with rustdoc).
     "--html-before-content", "fix-docsrs-li-details-summary.html",
 ]
+# We are not target-sensitive.
+targets = []
