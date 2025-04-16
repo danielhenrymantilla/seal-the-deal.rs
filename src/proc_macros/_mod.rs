@@ -145,7 +145,7 @@ fn with_seals_impl(
             }
         }
         assoc_func.attrs.push(parse_quote!(
-            #[doc = "\
+            #[doc = "\n\
                 \n\
                 ---\n\
                 \n\
